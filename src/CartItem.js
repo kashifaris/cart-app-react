@@ -19,6 +19,8 @@ class CartItem extends React.Component{
         }
 
     DecreseQuantity=()=>{
+        const {qty}=this.state;
+        if(qty==0) return ;
         this.setState((prevState)=>{
             return {
                 qty:prevState.qty-1
