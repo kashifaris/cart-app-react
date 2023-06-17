@@ -1,37 +1,44 @@
 import React from 'react';
 import Cart from'./Cart';
 import Navbar from './Navbar';
+import {collection, getDocs,addDoc,deleteDoc,doc} from 'firebase/firestore/lite';
+import {db} from './firebase'
+
 
 class App extends React.Component {
+    db=db;
   constructor(){
     super();
+    
     this.state={
-        products: [
-            {
-                prices: 91,
-                title: 'Watch',
-                qty:1,
-                img:'https://images.unsplash.com/photo-1548169874-53e85f753f1e?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=710&q=80',
-                id:1
-            },
-            {
-                prices: 999,
-                title: 'Mobile Phone',
-                qty:10,
-                img:'https://media.istockphoto.com/id/1221693757/photo/new-budget-iphone-se-smartphone-by-apple-computers-unboxing.jpg?s=612x612&w=0&k=20&c=WvADbLSUjHP3ctkVy1titpCZTcAaMk1YASKa-BOlru0=',
-                id:2
-            },
-            {
-                prices: 10999,
-                title: 'Laptop',
-                qty:2,
-                img:'https://media.istockphoto.com/id/1368877490/photo/open-laptop-or-notebook-screen-front-view.webp?s=2048x2048&w=is&k=20&c=8rlXsWQcrnQmH-T9CoMy-UNDro6Fc7tBDHQ2Rwr47ek=',
-                id:3
-            }
-        ]
-
+        products: [],
+        loading :true
     }
+} 
+componentDidMount(){
+    
+    const productsCol =  collection(db,"products");
+    async function getProducts(db) {
+        const productSnapshot = await getDocs(productsCol);
+        const productList = productSnapshot.docs.map((doc)=>{
+            const data= doc.data();
+            data['id']= doc.id;
+            return data;
+        });
+        return productList;
+      }
+    const products= getProducts(db);
+
+    products.then((data)=>{
+        this.setState({
+            products:data,
+            loading:false
+        })
+    })
+    
 }
+
+
 handleIncreaseQuantity=(product)=>{
     //console.log("done");
     const{products}=this.state;
@@ -57,9 +64,13 @@ handleDecreaseQuantity=(product)=>{
     })
 
 }
-handelDeleteProduct=(id)=>{
+handelDeleteProduct= async(id)=>{
     const{products}=this.state;
     const items=products.filter((item)=>item.id!==id);
+
+    const itemDoc= doc(db,'products',id);
+    await deleteDoc(itemDoc);
+    
     this.setState({
         products:items
     })
@@ -78,31 +89,46 @@ getCartTotal=()=>{
   const{products}=this.state;
   let total=0;
  products.forEach(element=>{
-  total+=element.prices*element.qty;
+  total+=element.price*element.qty;
  });
   return total;
 }
 
+addProduct= async () =>{
+    const data={
+        img:'https://i.pcmag.com/imagery/reviews/02FjjySMO01co9EOJRs418Z-11..v1600967648.jpg',
+        price:100,
+        qty:3,
+        title:"Tab" 
+    }
+    const productsCol =  collection(db,"products");
+    await addDoc(productsCol,data);
+}
+
 render(){
-  const{products}=this.state;
+
+  const{products,loading}=this.state;
+
   return (
     <div className="App">
     <Navbar
     count={this.getCartCount()}
     />
+    <button onClick={this.addProduct} style={{padding:20, fontSize:20}}>Add Product</button>
     <Cart
         products={products}
         onIncreaseQuantity={this.handleIncreaseQuantity}
         onDecreaseQuantity={this.handleDecreaseQuantity}
         onDeleteProduct={this.handelDeleteProduct}
     />
-    <div style={{padding:10,
-                 fontSize:40}}>
+    {loading && <h1>Loading Products...</h1>}
+    <div style={{padding:20,
+                 fontSize:20}}>
       Total:{this.getCartTotal()}
     </div>
     </div>
-    
   );
+
 }
 }
 

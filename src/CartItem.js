@@ -2,7 +2,7 @@ import React from 'react';
 
 const CartItem=(props)=>{   
 
-        const{prices, title,qty}=props.product;
+        const{price, title,qty}=props.product;
         return (
             <div className="cart-item">
                 <div className="left-block">
@@ -10,7 +10,7 @@ const CartItem=(props)=>{
                 </div>
                 <div className='right-block'>
                         <div style={{fontSize:25}}>{title}</div>
-                        <div style={{color:'#777'}}>price: {prices} Rs</div>
+                        <div style={{color:'#777'}}>price: {price} Rs</div>
                         <div style={{color:'#777'}}>Qty: {qty}</div>
                         <div className='cart-item-action'>
                             {/*buttons*/}
